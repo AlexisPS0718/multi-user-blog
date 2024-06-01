@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}All Posts{% endblock title %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1 class="center mb-3">All posts</h1>
+  <div class="cards-container">
+    {% for post in post_list %}
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="mb-2">
+          <a href="{% url 'detail' post.id %}" class="no-underline">
+            <h5 class="card-title">{{ post.title }}</h5>
+          </a>
+          <h6 class="card-subtitle mb-2 text-body-secondary">{{ post.subtitle }}</h6>
+          <h6 class="card-subtitle mb-2 text-body-secondary">Posted by: {{ post.author }}</h6>
+          <p class="card-text">{{ post.body|truncatechars:128 }}</p>
+        </div>
+        {% if user.is_authenticated %}
+        {% if post.author == user %}
+        <div>
+          <a href="{% url 'edit' post.id %}" class="card-link no-underline">Edit</a>
+          <a href="{% url 'delete' post.id %}" class="card-link no-underline">Delete</a>
+        </div>
+        {% endif %}
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock content %}
