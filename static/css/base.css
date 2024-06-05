@@ -83,7 +83,6 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-image: url("/static/img/inside-company.jpg");
   background-size: cover;
   background-position-y: -27rem;
   width: 100vw;

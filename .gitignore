@@ -2,3 +2,5 @@
 *__pycache__*
 /notes.txt
 mini-challenges/*
+.env
+staticfiles
