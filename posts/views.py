@@ -10,20 +10,71 @@ from django.contrib.auth.mixins import (
   LoginRequiredMixin,
   UserPassesTestMixin
 )
-from .models import Post
+from .models import Post, Status
 
 class PostListView(ListView):
   template_name = "posts/list.html"
   model = Post
 
-class PostDetailView(DetailView):
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    published = Status.objects.get(name="published")
+    context["post_list"] = (
+      Post.objects
+      .filter(status=published)
+      .order_by("created_on").reverse()
+    )
+    return context
+
+class DraftPostListView(LoginRequiredMixin, ListView):
+  template_name = "posts/list.html"
+  model = Post
+
+  def get_context_data(self, **kwargs):
+    # Retrieve the context object (a kind of dictionary)
+    context = super().get_context_data(**kwargs)
+    # Retrieve the instance of Status that represents "draft" mode
+    draft_status = Status.objects.get(name="draft")
+    # Filter posts based on draft status and author (and order by created_on)
+    context["post_list"] = (
+      Post.objects
+      .filter(status=draft_status)
+      .filter(author=self.request.user)
+      .order_by("created_on").reverse()
+    )
+    return context
+
+class ArchivedPostListView(LoginRequiredMixin, ListView):
+  template_name = "posts/list.html"
+  model = Post
+
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    archived_status = Status.objects.get(name="archived")
+    context["post_list"] = (
+      Post.objects
+      .filter(status=archived_status)
+      .order_by("created_on").reverse()
+    )
+    return context
+
+class PostDetailView(UserPassesTestMixin, DetailView):
   template_name = "posts/detail.html"
   model = Post
+  
+  def test_func(self):
+    post = self.get_object()
+    if str(post.status) == "published":
+      return True
+    elif str(post.status) == "draft":
+      return post.author == self.request.user
+    elif str(post.status) == "archived":
+      return self.request.user
 
 class PostCreateView(LoginRequiredMixin, CreateView):
   template_name = "posts/new.html"
   model = Post
-  fields = ["title", "subtitle", "body", "author", "status"]
+  fields = ["title", "subtitle", "body", "status"]
   
   def form_valid(self, form):
     form.instance.author = self.request.user
